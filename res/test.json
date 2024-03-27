@@ -1,0 +1,18 @@
+{
+  "count": 2,
+  "items":
+  {
+    "apple":
+    {
+      "type": "fruit",
+      "food": 3,
+      "attributes": ["sour", "sweet"]
+    },
+    "stew":
+    {
+      "health": 5,
+      "food": 10,
+      "hostile": false
+    }
+  }
+}

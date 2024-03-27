@@ -1,0 +1,79 @@
+{
+  "count": 14,
+  "items":
+  {
+    "health_apple":
+    {
+     "health" : 3,
+     "food"   : 3,
+     "rarity" : 1
+    },
+    "health_sandwich":
+    {
+     "health" : 2,
+     "food"   : 5,
+     "rarity" : 1
+    },
+    "health_stew":
+    {
+     "health" : 5,
+     "food"   : 10,
+     "water"  : 6,
+     "rarity" : 2
+    },
+    "health_water":
+    {
+     "health" : 4,
+     "water"  : 10,
+     "rarity" : 1
+    },
+    "ammo_bullet":
+    {
+      "rarity" : 1
+    },
+    "ammo_shell":
+    {
+      "rarity" : 1
+    },
+    "weapon_pocket_knife":
+    {
+     "damage" : 3,
+     "rarity" : 1
+    },
+    "weapon_baseball_bat":
+    {
+     "damage" : 4,
+     "rarity" : 1
+    },
+    "weapon_machete":
+    {
+     "damage" : 7,
+     "rarity" : 2
+    },
+    "weapon_m1911":
+    {
+     "damage" : 5,
+     "rarity" : 1
+    },
+    "weapon_m1915":
+    {
+     "damage" : 4,
+     "rarity" : 1
+    },
+    "weapon_m3":
+    {
+     "damage" : 5,
+     "rarity" : 1
+    },
+    "weapon_m16":
+    {
+     "damage" : 10,
+     "rarity" : 2
+    },
+    "weapon_mossberg_500":
+    {
+     "damage" : 10,
+     "rarity" : 2
+    }
+  }
+}
