@@ -13,7 +13,7 @@ Token :: struct
 
 TokenList :: struct
 {
-  arena : ^rc.Arena,
+  arena : ^rt.Arena,
   data : [^]Token,
   capacity : int,
   count : int,
@@ -42,7 +42,7 @@ push_token :: proc(list: ^TokenList, s: string, t: TokenType)
 
 // @Lexer ////////////////////////////////////////////////////////////////////////////////
 
-tokens_from_json_at_path :: proc(path: string, arena: ^rc.Arena) -> TokenList
+tokens_from_json_at_path :: proc(path: string, arena: ^rt.Arena) -> TokenList
 {
   tokens: TokenList
   tokens.capacity = TOKEN_CAP
@@ -152,7 +152,7 @@ Parser :: struct
   
 }
 
-items_from_tokens :: proc(tokens: TokenList, arena: ^rc.Arena) -> ItemStore
+items_from_tokens :: proc(tokens: TokenList, arena: ^rt.Arena) -> ItemStore
 {
   IDX_OF_COUNT_TOKEN :: 3
 
@@ -223,7 +223,7 @@ items_from_tokens :: proc(tokens: TokenList, arena: ^rc.Arena) -> ItemStore
 
 test_parser :: proc()
 {
-  arena: ^rc.Arena = rc.create_arena(rc.MIB * 4)
+  arena: ^rt.Arena = rt.create_arena(rt.MIB * 4)
   
   tokens := tokens_from_json_at_path("res/test.json", arena)
   for i in 0..< tokens.count
@@ -248,4 +248,4 @@ import str "core:strings"
 import strconv "core:strconv"
 import os "core:os"
 
-import rc "root/common"
+import rt "root"

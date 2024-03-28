@@ -1,0 +1,3 @@
+@echo Compiling project...
+@odin build src -out=debug\Game.exe -debug
+@echo Compilation complete.

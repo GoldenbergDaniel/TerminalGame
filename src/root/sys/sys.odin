@@ -1,4 +1,4 @@
-package sys
+package r_sys
 
 // foreign import lib "system:System"
 

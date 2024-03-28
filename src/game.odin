@@ -65,18 +65,18 @@ Action :: enum
 
 main :: proc()
 {
-  test_parser()
-  if true do return
+  // test_parser()
+  // if true do return
 
-  perm_arena := rc.create_arena(rc.MIB * 4)
-  defer rc.destroy_arena(perm_arena)
+  perm_arena := rt.create_arena(rt.MIB * 4)
+  defer rt.destroy_arena(perm_arena)
 
-  frame_arena := rc.create_arena(rc.MIB * 4)
-  defer rc.destroy_arena(frame_arena)
+  frame_arena := rt.create_arena(rt.MIB * 4)
+  defer rt.destroy_arena(frame_arena)
 
   context.allocator = perm_arena
 
-  @(static) commands: map[string]Action
+  commands := make(map[string]Action, 32)
   commands["quit"] = .QUIT_GAME
   commands["exit"] = .QUIT_GAME
   commands["new"] = .NEW_GAME
@@ -95,6 +95,7 @@ main :: proc()
   commands["help"] = .PRINT_HELP
 
   action: Action
+  position: rm.Vec2F
 
   entities: [EntityType.COUNT]Entity
   init_entities(entities[:])
@@ -134,6 +135,12 @@ main :: proc()
       if err != nil
       {
         fmt.println(err)
+      }
+
+      // Remove carriage return if applicable
+      if cmd[len(cmd)-1] == '\r'
+      {
+        cmd = cmd[:len(cmd)-1]
       }
       
       if cmd not_in commands
@@ -445,7 +452,7 @@ main :: proc()
 
     if !gm.running do break
 
-    rc.clear_arena(frame_arena)
+    rt.clear_arena(frame_arena)
   }
 }
 
@@ -459,7 +466,15 @@ ask_for_attribute_until_valid :: proc(prompt: string, remaining: u8) -> u8
     fmt.print(prompt)
     input_len, input_err := os.read(os.stdin, buf[:])
 
-    val, ok := strconv.parse_int(string(buf[:input_len-1]), 10)
+    // Remove carriage return if applicable
+    if buf[input_len-2] == '\r'
+    {
+      buf[input_len-2] = 0
+    }
+
+    buf[input_len-1] = 0
+
+    val, ok := strconv.parse_int(string(buf[:1]), 10)
     if ok && val >= 1 && val <= 10 && (int(remaining) - val >= 0)
     {
       result = cast(u8) val
@@ -491,7 +506,7 @@ Item :: struct
 
 ItemStore :: struct
 {
-  arena : ^rc.Arena,
+  arena : ^rt.Arena,
   items : []Item,
   item_count : int,
 }
@@ -782,5 +797,5 @@ import str "core:strings"
 import strconv "core:strconv"
 import rand "core:math/rand"
 
-import rc "root/common"
+import rt "root"
 import rm "root/math"
