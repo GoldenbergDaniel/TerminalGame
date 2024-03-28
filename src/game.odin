@@ -65,8 +65,8 @@ Action :: enum
 
 main :: proc()
 {
-  // test_parser()
-  // if true do return
+  test_parser()
+  if true do return
 
   perm_arena := rt.create_arena(rt.MIB * 4)
   defer rt.destroy_arena(perm_arena)
