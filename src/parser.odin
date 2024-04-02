@@ -36,7 +36,7 @@ push_token :: proc(list: ^TokenList, s: string, t: TokenType)
 {
   assert(list.count < list.cap)
 
-  list.data[list.count] = {str=str.clone(s, list.arena), type=t}
+  list.data[list.count] = {str=str.clone(s, list.arena.allocator), type=t}
   list.count += 1
 }
 
@@ -47,6 +47,8 @@ tokens_from_json_at_path :: proc(path: string, arena: ^rt.Arena) -> TokenList
   tokens: TokenList
   tokens.cap = TOKEN_CAP
   tokens.data = make([^]Token, tokens.cap, arena)
+  tokens.capacity = TOKEN_CAP
+  tokens.data = rt.arena_push(arena, Token, tokens.capacity)
   tokens.arena = arena
 
   context.allocator = arena.allocator

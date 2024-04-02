@@ -74,8 +74,6 @@ main :: proc()
   frame_arena := rt.create_arena(rt.MIB * 4)
   defer rt.destroy_arena(frame_arena)
 
-  context.allocator = perm_arena
-
   commands := make(map[string]Action, 32)
   commands["quit"] = .QUIT_GAME
   commands["exit"] = .QUIT_GAME
@@ -93,6 +91,8 @@ main :: proc()
   commands["character"] = .PRINT_CHARACTER
   commands["stats"] = .PRINT_CHARACTER
   commands["help"] = .PRINT_HELP
+
+  context.allocator = perm_arena.allocator
 
   action: Action
   position: rm.Vec2F
@@ -132,7 +132,7 @@ main :: proc()
         cmd_end = cmd_input_len
       }
   
-      cmd, err := str.to_lower(cmd_str[:cmd_end], frame_arena)
+      cmd, err := str.to_lower(cmd_str[:cmd_end], frame_arena.allocator)
       if err != nil
       {
         fmt.println(err)
@@ -453,7 +453,7 @@ main :: proc()
 
     if !gm.running do break
 
-    rt.clear_arena(frame_arena)
+    rt.arena_clear(frame_arena)
   }
 }
 
