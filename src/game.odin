@@ -65,7 +65,11 @@ Action :: enum
 
 main :: proc()
 {
+<<<<<<< HEAD
   // test_parser()
+=======
+  test_parser()
+>>>>>>> 2c1390df7b3add31c48f6b8ee3a3cc3f4482f052
   // if true do return
 
   perm_arena := rt.create_arena(rt.MIB * 4)

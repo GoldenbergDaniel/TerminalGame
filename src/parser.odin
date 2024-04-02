@@ -45,10 +45,13 @@ push_token :: proc(list: ^TokenList, s: string, t: TokenType)
 tokens_from_json_at_path :: proc(path: string, arena: ^rt.Arena) -> TokenList
 {
   tokens: TokenList
+<<<<<<< HEAD
   tokens.cap = TOKEN_CAP
   tokens.data = make([^]Token, tokens.cap, arena)
+=======
   tokens.capacity = TOKEN_CAP
   tokens.data = rt.arena_push(arena, Token, tokens.capacity)
+>>>>>>> 2c1390df7b3add31c48f6b8ee3a3cc3f4482f052
   tokens.arena = arena
 
   context.allocator = arena.allocator
