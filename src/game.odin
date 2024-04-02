@@ -6,7 +6,7 @@ MAX_SCAVANGE_STEPS      :: 10
 RANDOM_ENCOUNTER_CHANCE :: 4
 COMBAT_FLEE_CHANCE      :: 5
 
-Game :: struct
+Game :: struct #packed
 {
   running : bool,
   started : bool,
@@ -65,8 +65,8 @@ Action :: enum
 
 main :: proc()
 {
-  test_parser()
-  if true do return
+  // test_parser()
+  // if true do return
 
   perm_arena := rt.create_arena(rt.MIB * 4)
   defer rt.destroy_arena(perm_arena)
@@ -121,6 +121,7 @@ main :: proc()
     {
       fmt.print("> ")
       cmd_input_buf: [64]byte
+      slc: []byte = cmd_input_buf[2:5]
       cmd_input_len, _ := os.read(os.stdin, cmd_input_buf[:])
       cmd_input_len -= 1
 

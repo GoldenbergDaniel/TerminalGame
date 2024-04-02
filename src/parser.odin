@@ -15,7 +15,7 @@ TokenList :: struct
 {
   arena : ^rt.Arena,
   data : [^]Token,
-  capacity : int,
+  cap : int,
   count : int,
 }
 
@@ -34,7 +34,7 @@ TokenType :: enum
 
 push_token :: proc(list: ^TokenList, s: string, t: TokenType)
 {
-  assert(list.count < list.capacity)
+  assert(list.count < list.cap)
 
   list.data[list.count] = {str=str.clone(s, list.arena), type=t}
   list.count += 1
@@ -45,8 +45,8 @@ push_token :: proc(list: ^TokenList, s: string, t: TokenType)
 tokens_from_json_at_path :: proc(path: string, arena: ^rt.Arena) -> TokenList
 {
   tokens: TokenList
-  tokens.capacity = TOKEN_CAP
-  tokens.data = make([^]Token, tokens.capacity, arena)
+  tokens.cap = TOKEN_CAP
+  tokens.data = make([^]Token, tokens.cap, arena)
   tokens.arena = arena
 
   context.allocator = arena.allocator
@@ -164,14 +164,16 @@ items_from_tokens :: proc(tokens: TokenList, arena: ^rt.Arena) -> ItemStore
   {
     ok: bool
     item_count, ok = strconv.parse_int(tokens.data[IDX_OF_COUNT_TOKEN].str)
-    if !ok
+    if ok
+    {
+      result.item_count = item_count
+    }
+    else
     {
       fmt.eprint("Error parsing item count!\n")
       return {}
     }
   }
-
-  result.item_count = item_count
 
   // Get index of first item ----------------
   first_item_idx: int

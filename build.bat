@@ -1,3 +1,3 @@
 @echo Compiling project...
-@odin build src -out=debug\Game.exe -debug
+@odin build src -out=debug\Game.exe -debug -use-separate-modules
 @echo Compilation complete.
