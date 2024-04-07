@@ -1,9 +1,7 @@
 package rt
 
 import runtime "base:runtime"
-
-import "base:intrinsics"
-import "core:unicode/utf16"
+import mem "core:mem"
 
 // @Arena ////////////////////////////////////////////////////////////////////////////////
 
@@ -15,8 +13,8 @@ Allocator :: runtime.Allocator
 
 Arena :: struct
 {
-  data : []byte,
-  capacity : int,
+  data : [^]byte,
+  size : int,
   offset : int,
 
   allocator : runtime.Allocator,
@@ -25,13 +23,14 @@ Arena :: struct
 create_arena :: proc(size: int) -> ^Arena
 {
   result: ^Arena = new(Arena, runtime.default_allocator())
-  result.data = make([]byte, size, runtime.default_allocator())
-  result.capacity = size
+  result.data = make([^]byte, size, runtime.default_allocator())
   result.allocator =
   {
     data=result, 
     procedure=arena_allocator_proc,
   }
+
+  runtime.memset(result.data, 0, result.size)
 
   return result
 }
@@ -101,26 +100,30 @@ arena_pop :: proc
 arena_pop_bytes :: #force_inline proc(arena: ^Arena, size: int)
 {
   arena.offset -= size
+  runtime.memset(&arena.data[arena.offset], 0, size)
 }
 
 arena_pop_item :: #force_inline proc(arena: ^Arena, $T: typeid)
 {
   arena.offset -= size_of(T)
+  runtime.memset(&arena.data[arena.offset], 0, size_of(T))
 }
 
 arena_pop_array :: #force_inline proc(arena: ^Arena, $T: typeid, count: u64)
 {
   arena.offset -= size_of(T) * count
+  runtime.memset(&arena.data[arena.offset], 0, size_of(T) * count)
 }
 
 arena_clear :: #force_inline proc(arena: ^Arena)
 {
+  runtime.memset(arena.data, 0, arena.offset)
   arena.offset = 0
 }
 
 destroy_arena :: proc(arena: ^Arena)
 {
-  delete(arena.data)
+  delete(arena.data[:arena.size])
 }
 
 arena_allocator_proc :: proc(allocator_data: rawptr, 
