@@ -24,6 +24,7 @@ create_arena :: proc(size: int) -> ^Arena
 {
   result: ^Arena = new(Arena, runtime.default_allocator())
   result.data = make([^]byte, size, runtime.default_allocator())
+  result.size = size
   result.allocator =
   {
     data=result, 
