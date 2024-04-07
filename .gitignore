@@ -1,4 +1,6 @@
 .DS_STORE
 ols.json
+Game
 ./Game
-/Game
+Game.exe
+./Game.exe
