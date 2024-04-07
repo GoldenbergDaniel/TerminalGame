@@ -166,7 +166,7 @@ items_from_tokens :: proc(tokens: TokenList, arena: ^rt.Arena) -> ItemStore
     item_count, ok = strconv.parse_int(tokens.data[IDX_OF_COUNT_TOKEN].str)
     if ok
     {
-      result.item_count = item_count
+      result.count = item_count
     }
     else
     {
