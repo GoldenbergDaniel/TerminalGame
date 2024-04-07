@@ -2,11 +2,11 @@ package main
 
 // @GameState ////////////////////////////////////////////////////////////////////////////
 
-MAX_SCAVANGE_STEPS      :: 10
+MAX_SCAVANGE_STEPS :: 10
 RANDOM_ENCOUNTER_CHANCE :: 4
-COMBAT_FLEE_CHANCE      :: 5
+COMBAT_FLEE_CHANCE :: 5
 
-Game :: struct #packed
+Game :: struct
 {
   running : bool,
   started : bool,
@@ -65,16 +65,18 @@ Action :: enum
 
 main :: proc()
 {
-  test_parser()
+  // test_parser()
   // if true do return
 
-  perm_arena := rt.create_arena(rt.MIB * 4)
+  perm_arena := rt.create_arena(rt.MIB * 16)
   defer rt.destroy_arena(perm_arena)
 
   frame_arena := rt.create_arena(rt.MIB * 4)
   defer rt.destroy_arena(frame_arena)
 
-  commands := make(map[string]Action, 32)
+  context.allocator = perm_arena.allocator
+
+  commands := make(map[string]Action, 32, runtime.default_allocator())
   commands["quit"] = .QUIT_GAME
   commands["exit"] = .QUIT_GAME
   commands["new"] = .NEW_GAME
@@ -92,10 +94,7 @@ main :: proc()
   commands["stats"] = .PRINT_CHARACTER
   commands["help"] = .PRINT_HELP
 
-  context.allocator = perm_arena.allocator
-
   action: Action
-  position: rm.Vec2F
 
   entities: [EntityType.COUNT]Entity
   init_entities(entities[:])
@@ -116,7 +115,7 @@ main :: proc()
   fmt.print("Type 'new' to start a new game. Type 'continue' to continue last save.\n\n")
 
   for gm.running
-  { 
+  {
     if gm.override_action == .NONE
     {
       fmt.print("> ")
@@ -166,6 +165,7 @@ main :: proc()
       {
         gm.running = false
         fmt.print("Exiting game.\n")
+        set_color(.WHITE)
       }
       case .NEW_GAME:
       {
@@ -509,7 +509,7 @@ ItemStore :: struct
 {
   arena : ^rt.Arena,
   items : []Item,
-  item_count : int,
+  count : int,
 }
 
 ItemType :: enum
