@@ -65,18 +65,24 @@ Action :: enum
 
 main :: proc()
 {
-  test_parser()
-  if true do return
-
   perm_arena := rt.create_arena(rt.MIB * 16)
   defer rt.destroy_arena(perm_arena)
 
   frame_arena := rt.create_arena(rt.MIB * 4)
   defer rt.destroy_arena(frame_arena)
 
-  context.allocator = perm_arena.allocator
+  temp_arena := rt.create_arena(rt.MIB * 16)
+  defer rt.destroy_arena(temp_arena)
 
-  commands := make(map[string]Action, 32, runtime.default_allocator())
+  context.allocator = perm_arena.allocator
+  context.temp_allocator = temp_arena.allocator
+
+  test_parser()
+  // if true do return
+
+  commands := make(map[string]Action, 32, perm_arena.allocator)
+  defer rt.arena_pop_map(perm_arena, type_of(commands), commands)
+
   commands["quit"] = .QUIT_GAME
   commands["exit"] = .QUIT_GAME
   commands["new"] = .NEW_GAME
