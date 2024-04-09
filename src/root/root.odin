@@ -58,7 +58,7 @@ arena_push_item :: proc(arena: ^Arena, $T: typeid) -> ^T
   result, offset := align_ptr(ptr, align_of(T));
   arena.offset += size_of(T) + offset
 
-  return result
+  return cast(^T) result
 }
 
 arena_push_array :: proc(arena: ^Arena, $T: typeid, count: int) -> ^T
@@ -155,13 +155,15 @@ arena_allocator_proc :: proc(allocator_data: rawptr,
 
 align_ptr :: #force_inline proc(ptr: rawptr, align: int) -> (rawptr, int)
 {
-	result := uintptr(ptr)
+	result: uintptr = cast(uintptr) ptr
+  offset: uintptr = 0
 
 	modulo := result & (uintptr(align) - 1)
 	if modulo != 0
   {
-		result += uintptr(align) - modulo
+    offset = uintptr(align) - modulo
+		result += offset
 	}
 
-	return rawptr(result), align - int(modulo)
+	return rawptr(result), int(offset)
 }
