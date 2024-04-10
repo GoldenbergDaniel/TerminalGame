@@ -9,8 +9,6 @@ KIB :: 1 << 10
 MIB :: 1 << 20
 GIB :: 1 << 30
 
-Allocator :: runtime.Allocator
-
 Arena :: struct
 {
   data : [^]byte,
@@ -20,9 +18,9 @@ Arena :: struct
   allocator : runtime.Allocator,
 }
 
-create_arena :: proc(size: int) -> ^Arena
+create_arena :: proc(size: int, alloctor := context.allocator) -> ^Arena
 {
-  result: ^Arena = new(Arena, runtime.default_allocator())
+  result: ^Arena = new(Arena, alloctor)
   result.data = make([^]byte, size, runtime.heap_allocator())
   result.size = size
   result.allocator =
@@ -96,7 +94,7 @@ arena_pop_array :: proc(arena: ^Arena, $T: typeid, count: u64)
   runtime.memset(&arena.data[arena.offset], 0, size_of(T) * count)
 }
 
-arena_pop_map :: proc(arena: ^Arena, $T: typeid/map[$K]$E, m: T)
+arena_pop_map :: proc(arena: ^Arena, m: map[$K]$V)
 {
   map_info := intrinsics.type_map_info(type_of(m))
   size := cast(int) runtime.map_total_allocation_size(uintptr(cap(m)), map_info)
@@ -115,9 +113,24 @@ destroy_arena :: proc(arena: ^Arena)
   delete(arena.data[:arena.size], runtime.default_allocator())
 }
 
-arena_from_allocator :: #force_inline proc(allocator: Allocator) -> ^Arena
+arena_from_allocator :: #force_inline proc(allocator: runtime.Allocator) -> ^Arena
 {
   return cast(^Arena) allocator.data
+}
+
+align_ptr :: #force_inline proc(ptr: rawptr, align: int) -> (rawptr, int)
+{
+	result := cast(uintptr) ptr
+  offset: uintptr = 0
+
+	modulo := result & (uintptr(align) - 1)
+	if modulo != 0
+  {
+    offset = uintptr(align) - modulo
+		result += offset
+	}
+
+	return rawptr(result), int(offset)
 }
 
 arena_allocator_proc :: proc(allocator_data: rawptr, 
@@ -151,19 +164,4 @@ arena_allocator_proc :: proc(allocator_data: rawptr,
 	}
 
 	return nil, nil
-}
-
-align_ptr :: #force_inline proc(ptr: rawptr, align: int) -> (rawptr, int)
-{
-	result: uintptr = cast(uintptr) ptr
-  offset: uintptr = 0
-
-	modulo := result & (uintptr(align) - 1)
-	if modulo != 0
-  {
-    offset = uintptr(align) - modulo
-		result += offset
-	}
-
-	return rawptr(result), int(offset)
 }

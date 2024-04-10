@@ -77,11 +77,20 @@ main :: proc()
   context.allocator = perm_arena.allocator
   context.temp_allocator = temp_arena.allocator
 
-  test_parser()
-  // if true do return
+  tests.begin("MISC TESTS")
+  tests.push("Integer Test", 87, 21, "!=")
+  tests.push("Float Test", 1.1, 2.7, "==")
+  tests.push("Boolean Test", true, false)
+  tests.push("String Test", "and", "bor", "<=")
+  tests.push("Slice Test 1", []string{"a", "c", "f"}, []string{"f", "a", "c"}, "==")
+  tests.push("Slice Test 2", []string{"a", "c", "f"}, []string{"f", "a", "c"}, "~=")
+  tests.end()
+
+  // test_parser()
+  if true do return
 
   commands := make(map[string]Action, 32, perm_arena.allocator)
-  defer rt.arena_pop_map(perm_arena, type_of(commands), commands)
+  defer rt.arena_pop_map(perm_arena, commands)
 
   commands["quit"] = .QUIT_GAME
   commands["exit"] = .QUIT_GAME
@@ -806,3 +815,4 @@ import rand "core:math/rand"
 
 import rt "root"
 import rm "root/math"
+import tests "root/tests"

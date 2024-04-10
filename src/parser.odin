@@ -22,7 +22,7 @@ test_parser :: proc()
 
   fmt.print("\n")
 
-  // items: ItemStore = items_from_tokens(tokens, arena)
+  items: ItemStore = items_from_tokens(tokens, arena)
 }
 
 // @Token //////////////////////////////////////////////////////////////////////////////// 
@@ -79,7 +79,6 @@ tokens_from_json_at_path :: proc(path: string, arena: ^rt.Arena) -> TokenList
   }
   
   buf: []byte = make([]byte, BUF_SIZE, context.temp_allocator)
-  defer rt.arena_clear(rt.arena_from_allocator(context.temp_allocator))
 
   stream_len, r_err := os.read(file, buf[:])
   if r_err != os.ERROR_NONE
@@ -163,6 +162,8 @@ tokens_from_json_at_path :: proc(path: string, arena: ^rt.Arena) -> TokenList
 
     i += 1
   }
+
+  rt.arena_clear(rt.arena_from_allocator(context.temp_allocator))
 
   return tokens
 }
