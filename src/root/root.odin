@@ -1,15 +1,13 @@
 package rt
 
 import runtime "base:runtime"
-import mem "core:mem"
+import intrinsics "base:intrinsics"
 
 // @Arena ////////////////////////////////////////////////////////////////////////////////
 
 KIB :: 1 << 10
 MIB :: 1 << 20
 GIB :: 1 << 30
-
-Allocator :: runtime.Allocator
 
 Arena :: struct
 {
@@ -20,10 +18,10 @@ Arena :: struct
   allocator : runtime.Allocator,
 }
 
-create_arena :: proc(size: int) -> ^Arena
+create_arena :: proc(size: int, alloctor := context.allocator) -> ^Arena
 {
-  result: ^Arena = new(Arena, runtime.default_allocator())
-  result.data = make([^]byte, size, runtime.default_allocator())
+  result: ^Arena = new(Arena, alloctor)
+  result.data = make([^]byte, size, runtime.heap_allocator())
   result.size = size
   result.allocator =
   {
@@ -43,52 +41,31 @@ arena_push :: proc
   arena_push_array,
 }
 
-arena_push_bytes :: proc(arena: ^Arena, size: int) -> rawptr
+arena_push_bytes :: proc(arena: ^Arena, size: int, alignment: int = 8) -> rawptr
 {
-  result: rawptr
-
-  align :: 8
-  if arena.offset % align == 0
-  {
-    arena.offset += align - (arena.offset % align)
-  }
-
-  result = &arena.data[arena.offset]
-  arena.offset += size
+  ptr: rawptr = &arena.data[arena.offset]
+  result, offset := align_ptr(ptr, alignment);
+  arena.offset += size + offset
 
   return result
 }
 
 arena_push_item :: proc(arena: ^Arena, $T: typeid) -> ^T
 {
-  result: ^T
+  ptr: rawptr = &arena.data[arena.offset]
+  result, offset := align_ptr(ptr, align_of(T));
+  arena.offset += size_of(T) + offset
 
-  align :: align_of(T)
-  if arena.offset % align == 0
-  {
-    arena.offset += align - (arena.offset % align)
-  }
-
-  result = cast(^T) &arena.data[arena.offset]
-  arena.offset += size_of(T)
-
-  return result
+  return cast(^T) result
 }
 
 arena_push_array :: proc(arena: ^Arena, $T: typeid, count: int) -> ^T
 {
-  result: ^T
+  ptr: rawptr = &arena.data[arena.offset]
+  result, offset := align_ptr(ptr, align_of(T));
+  arena.offset += (size_of(T) * count) + offset
 
-  align :: align_of(T)
-  if arena.offset % align == 0
-  {
-    arena.offset += align - (arena.offset % align)
-  }
-
-  result = cast(^T) &arena.data[arena.offset]
-  arena.offset += size_of(T) * count
-
-  return result
+  return cast(^T) result
 }
 
 arena_pop :: proc
@@ -96,27 +73,36 @@ arena_pop :: proc
   arena_pop_bytes,
   arena_pop_item,
   arena_pop_array,
+  arena_pop_map,
 }
 
-arena_pop_bytes :: #force_inline proc(arena: ^Arena, size: int)
+arena_pop_bytes :: proc(arena: ^Arena, size: int)
 {
   arena.offset -= size
   runtime.memset(&arena.data[arena.offset], 0, size)
 }
 
-arena_pop_item :: #force_inline proc(arena: ^Arena, $T: typeid)
+arena_pop_item :: proc(arena: ^Arena, $T: typeid)
 {
   arena.offset -= size_of(T)
   runtime.memset(&arena.data[arena.offset], 0, size_of(T))
 }
 
-arena_pop_array :: #force_inline proc(arena: ^Arena, $T: typeid, count: u64)
+arena_pop_array :: proc(arena: ^Arena, $T: typeid, count: u64)
 {
   arena.offset -= size_of(T) * count
   runtime.memset(&arena.data[arena.offset], 0, size_of(T) * count)
 }
 
-arena_clear :: #force_inline proc(arena: ^Arena)
+arena_pop_map :: proc(arena: ^Arena, m: map[$K]$V)
+{
+  map_info := intrinsics.type_map_info(type_of(m))
+  size := cast(int) runtime.map_total_allocation_size(uintptr(cap(m)), map_info)
+  arena.offset -= size
+  runtime.memset(&arena.data[arena.offset], 0, size)
+}
+
+arena_clear :: proc(arena: ^Arena)
 {
   runtime.memset(arena.data, 0, arena.offset)
   arena.offset = 0
@@ -124,7 +110,27 @@ arena_clear :: #force_inline proc(arena: ^Arena)
 
 destroy_arena :: proc(arena: ^Arena)
 {
-  delete(arena.data[:arena.size])
+  delete(arena.data[:arena.size], runtime.default_allocator())
+}
+
+arena_from_allocator :: #force_inline proc(allocator: runtime.Allocator) -> ^Arena
+{
+  return cast(^Arena) allocator.data
+}
+
+align_ptr :: #force_inline proc(ptr: rawptr, align: int) -> (rawptr, int)
+{
+	result := cast(uintptr) ptr
+  offset: uintptr = 0
+
+	modulo := result & (uintptr(align) - 1)
+	if modulo != 0
+  {
+    offset = uintptr(align) - modulo
+		result += offset
+	}
+
+	return rawptr(result), int(offset)
 }
 
 arena_allocator_proc :: proc(allocator_data: rawptr, 
@@ -139,7 +145,7 @@ arena_allocator_proc :: proc(allocator_data: rawptr,
   {
 	  case .Alloc, .Alloc_Non_Zeroed:
     {
-      ptr := arena_push_bytes(arena, size)
+      ptr := arena_push_bytes(arena, size, alignment)
       byte_slice := ([^]u8) (ptr)[:max(size, 0)]
       return byte_slice, nil
     }

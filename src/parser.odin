@@ -3,6 +3,28 @@ package main
 BUF_SIZE :: 1 << 20 // 1 MiB
 TOKEN_CAP :: 2000
 
+// @Test /////////////////////////////////////////////////////////////////////////////////
+
+test_parser :: proc()
+{
+  arena: ^rt.Arena = rt.create_arena(rt.MIB * 8)
+  
+  tokens := tokens_from_json_at_path("res/test.json", arena)
+  for i in 0..< tokens.count
+  {
+    fmt.printf("%s", tokens.data[i].str)
+
+    if i < tokens.count - 1
+    {
+      fmt.print(", ")
+    }
+  }
+
+  fmt.print("\n")
+
+  items: ItemStore = items_from_tokens(tokens, arena)
+}
+
 // @Token //////////////////////////////////////////////////////////////////////////////// 
 
 Token :: struct
@@ -49,8 +71,6 @@ tokens_from_json_at_path :: proc(path: string, arena: ^rt.Arena) -> TokenList
   tokens.data = rt.arena_push(arena, Token, tokens.cap)
   tokens.arena = arena
 
-  context.allocator = arena.allocator
-
   file, o_err := os.open(path, os.O_RDONLY)
   if o_err != os.ERROR_NONE
   {
@@ -58,7 +78,8 @@ tokens_from_json_at_path :: proc(path: string, arena: ^rt.Arena) -> TokenList
     return {}
   }
   
-  buf: [BUF_SIZE]byte
+  buf: []byte = make([]byte, BUF_SIZE, context.temp_allocator)
+
   stream_len, r_err := os.read(file, buf[:])
   if r_err != os.ERROR_NONE
   {
@@ -142,6 +163,8 @@ tokens_from_json_at_path :: proc(path: string, arena: ^rt.Arena) -> TokenList
     i += 1
   }
 
+  rt.arena_clear(rt.arena_from_allocator(context.temp_allocator))
+
   return tokens
 }
 
@@ -219,28 +242,6 @@ items_from_tokens :: proc(tokens: TokenList, arena: ^rt.Arena) -> ItemStore
   }
 
   return result
-}
-
-// @Test /////////////////////////////////////////////////////////////////////////////////
-
-test_parser :: proc()
-{
-  arena: ^rt.Arena = rt.create_arena(rt.MIB * 4)
-  
-  tokens := tokens_from_json_at_path("res/test.json", arena)
-  for i in 0..< tokens.count
-  {
-    fmt.printf("%s", tokens.data[i].str)
-
-    if i < tokens.count - 1
-    {
-      fmt.print(", ")
-    }
-  }
-
-  fmt.print("\n")
-
-  items: ItemStore = items_from_tokens(tokens, arena)
 }
 
 // @Imports //////////////////////////////////////////////////////////////////////////////
