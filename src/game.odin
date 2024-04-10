@@ -66,7 +66,7 @@ Action :: enum
 main :: proc()
 {
   test_parser()
-  if true do return
+  // if true do return
 
   perm_arena := rt.create_arena(rt.MIB * 16)
   defer rt.destroy_arena(perm_arena)
@@ -96,7 +96,7 @@ main :: proc()
 
   action: Action
 
-  entities: [EntityType.COUNT]Entity
+  entities: [len(EntityType)]Entity
   init_entities(entities[:])
 
   gm: Game
@@ -672,8 +672,6 @@ EntityType :: enum
   POSSESSED_DOG,
   CULTIST,
   DEMON,
-
-  COUNT,
 }
 
 init_entities :: proc(entities: []Entity)
@@ -704,7 +702,7 @@ generate_random_encounter :: proc(gm: ^Game, entities: []Entity)
 {
   for true
   {
-    roll: EntityType = cast(EntityType) (rand.int31() % i32(EntityType.COUNT))
+    roll: EntityType = cast(EntityType) (rand.int31() % i32(len(EntityType)))
     name := string_from_entity_type(roll)
 
     if roll == .CULTIST && gm.day < 5 do continue
@@ -732,7 +730,7 @@ generate_random_encounter :: proc(gm: ^Game, entities: []Entity)
 
 string_from_entity_type :: proc(type: EntityType) -> string
 {
-  @(static) items: [EntityType.COUNT]string = {
+  @(static) items: [len(EntityType)]string = {
     EntityType.POSSESSED_SQUIRREL = "Possessed Squirrel",
     EntityType.POSSESSED_DOG = "Possessed Dog",
     EntityType.CULTIST = "Cultist",
