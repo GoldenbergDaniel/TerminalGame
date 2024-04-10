@@ -65,9 +65,6 @@ Action :: enum
 
 main :: proc()
 {
-  test_parser()
-  // if true do return
-
   perm_arena := rt.create_arena(rt.MIB * 16)
   defer rt.destroy_arena(perm_arena)
 
@@ -85,7 +82,7 @@ main :: proc()
   tests.push("Float Test", 1.1, 2.7, "==")
   tests.push("Boolean Test", true, false)
   tests.push("String Test", "and", "bor", "<=")
-  tests.push("Slice Test 1", []string{"a", "c", "f"}, []string{"f", "a", "c"}, "==")
+  tests.push("Slice Test 1", []string{"f", "a", "c"}, []string{"f", "a", "c"}, "==")
   tests.push("Slice Test 2", []string{"a", "c", "f"}, []string{"f", "a", "c"}, "~=")
   tests.end()
 
@@ -94,7 +91,6 @@ main :: proc()
 
   commands := make(map[string]Action, 32, perm_arena.allocator)
   defer rt.arena_pop_map(perm_arena, commands)
-
   commands["quit"] = .QUIT_GAME
   commands["exit"] = .QUIT_GAME
   commands["new"] = .NEW_GAME

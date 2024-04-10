@@ -97,41 +97,25 @@ push_string :: proc(name: string, a, b: string, comp: string = "==")
 
 push_slice :: proc(name: string, a, b: []$T, comp: string = "==")
 {
+  assert(comp == "==" || comp == "~=", "Invalid comparison operator!")
+
   result: bool
   count := len(a)
-
-  if comp == "=="
+  
+  if len(a) != len(b)
   {
-    if len(a) != len(b)
+    for i in 0..<count
     {
-      for i in 0..<count
+      if a[i] != b[i]
       {
-        if a[i] != b[i]
-        {
-          result = false
-          break
-        }
+        result = false
+        break
       }
     }
   }
-  else if comp == "!="
+  else
   {
-    if len(a) == len(b)
-    {
-      result = true
-      for i in 0..<count
-      {
-        if a[i] != b[i]
-        {
-          result = false
-          break
-        }
-      }
-    }
-  }
-  else if comp == "~="
-  {
-    if len(a) == len(b)
+    if comp == "~="
     {
       // sort
       for i := 0; i < count; i+=1
@@ -149,21 +133,17 @@ push_slice :: proc(name: string, a, b: []$T, comp: string = "==")
           }
         }
       }
+    }
 
-      // compare
-      result = true
-      for i in 0..<count
+    result = true
+    for i in 0..<count
+    {
+      if a[i] != b[i]
       {
-        if a[i] != b[i]
-        {
-          result = false
-        }
+        result = false
+        break
       }
     }
-  }
-  else
-  {
-    panic("Invalid comparison operator!")
   }
 
   STATE.tests[STATE.test_count] = {name, 0, 0, comp, result, true}
