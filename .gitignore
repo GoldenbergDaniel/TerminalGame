@@ -1,6 +1,8 @@
+/debug
+
 .DS_STORE
 ols.json
 Game
-./Game
 Game.exe
-./Game.exe
+build.bat
+build.sh
