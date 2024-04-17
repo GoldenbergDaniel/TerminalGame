@@ -1,6 +1,6 @@
 package main
 
-BUF_SIZE :: 1 << 20 // 1 MiB
+BUF_SIZE :: rt.MIB
 TOKEN_CAP :: 2000
 
 // @Test /////////////////////////////////////////////////////////////////////////////////
@@ -10,17 +10,15 @@ test_parser :: proc()
   arena: ^rt.Arena = rt.create_arena(rt.MIB * 8)
   
   tokens := tokens_from_json_at_path("res/test.json", arena)
-  for i in 0..< tokens.count
+  for i in 0..<tokens.count
   {
     fmt.printf("%s", tokens.data[i].str)
 
     if i < tokens.count - 1
     {
-      fmt.print(", ")
+      fmt.print("  ")
     }
   }
-
-  fmt.print("\n")
 
   items: ItemStore = items_from_tokens(tokens, arena)
 }
@@ -214,13 +212,18 @@ items_from_tokens :: proc(tokens: TokenList, arena: ^rt.Arena) -> ItemStore
   token_idx := first_item_idx + 1
   for i := 0; i < item_count; i += 1
   {
+    item: Item
     token := tokens.data[token_idx]
+
+    item.name = tokens.data[token_idx].str
+    token_idx += 1
 
     #partial switch token.type
     {
       case .BRACE_OPEN:
       {
         // start of item
+
       }
       case .BRACE_CLOSED:
       {
@@ -247,8 +250,9 @@ items_from_tokens :: proc(tokens: TokenList, arena: ^rt.Arena) -> ItemStore
 // @Imports //////////////////////////////////////////////////////////////////////////////
 
 import fmt "core:fmt"
+import os "core:os"
 import str "core:strings"
 import strconv "core:strconv"
-import os "core:os"
 
 import rt "root"
+import tests "tests"

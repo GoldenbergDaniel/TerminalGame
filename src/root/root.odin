@@ -165,3 +165,10 @@ arena_allocator_proc :: proc(allocator_data: rawptr,
 
 	return nil, nil
 }
+
+// @Misc /////////////////////////////////////////////////////////////////////////////////
+
+cpu_cycle_counter :: #force_inline proc() -> i64
+{
+  return runtime.read_cycle_counter()
+}

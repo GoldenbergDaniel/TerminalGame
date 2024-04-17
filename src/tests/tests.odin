@@ -1,7 +1,7 @@
-package rt_tests
+package tests
 
 import fmt "core:fmt"
-import rt "../"
+import rt "../root"
 
 MAX_TESTS :: 64
 

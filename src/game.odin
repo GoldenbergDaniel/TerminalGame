@@ -68,25 +68,16 @@ main :: proc()
   perm_arena := rt.create_arena(rt.MIB * 16)
   defer rt.destroy_arena(perm_arena)
 
-  frame_arena := rt.create_arena(rt.MIB * 4)
-  defer rt.destroy_arena(frame_arena)
-
   temp_arena := rt.create_arena(rt.MIB * 16)
   defer rt.destroy_arena(temp_arena)
+
+  frame_arena := rt.create_arena(rt.MIB * 4)
+  defer rt.destroy_arena(frame_arena)
 
   context.allocator = perm_arena.allocator
   context.temp_allocator = temp_arena.allocator
 
-  tests.begin("MISC TESTS")
-  tests.push("Integer Test", 87, 21, "!=")
-  tests.push("Float Test", 1.1, 2.7, "==")
-  tests.push("Boolean Test", true, false)
-  tests.push("String Test", "and", "bor", "<=")
-  tests.push("Slice Test 1", []string{"f", "a", "c"}, []string{"f", "a", "c"}, "==")
-  tests.push("Slice Test 2", []string{"a", "c", "f"}, []string{"f", "a", "c"}, "~=")
-  tests.end()
-
-  // test_parser()
+  test_parser()
   if true do return
 
   commands := make(map[string]Action, 32, perm_arena.allocator)
@@ -118,7 +109,7 @@ main :: proc()
   init_items(gm.items[:])
 
   rng: rand.Rand
-  seed := cast(u64) runtime.read_cycle_counter()
+  seed := cast(u64) rt.cpu_cycle_counter()
   rand.init(&rng, seed)
 
   // Title message ----------------
@@ -243,8 +234,8 @@ main :: proc()
         gm.started = true
         gm.remaining_scavange_steps = MAX_SCAVANGE_STEPS
 
-        gm.faith = rm.clamp(int(gm.endurance), 3, 9)
-        gm.max_health = rm.clamp(int(20 * (f32(gm.endurance) / 5.0)), 10, 40)
+        gm.faith = clamp(int(gm.endurance), 3, 9)
+        gm.max_health = clamp(int(20 * (f32(gm.endurance) / 5.0)), 10, 40)
         gm.health = gm.max_health
         gm.food = 20
         gm.water = 20
@@ -803,13 +794,10 @@ set_bold :: proc(bold: bool)
 
 // @Imports //////////////////////////////////////////////////////////////////////////////
 
-import runtime "base:runtime"
 import fmt "core:fmt"
 import os "core:os"
+import rand "core:math/rand"
 import str "core:strings"
 import strconv "core:strconv"
-import rand "core:math/rand"
 
 import rt "root"
-import rm "root/math"
-import tests "root/tests"
