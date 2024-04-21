@@ -760,6 +760,7 @@ Color :: enum
 
 set_color :: proc(color: Color)
 {
+  PI : f32 : 3.14159
   switch color
   {
     case .BLACK:

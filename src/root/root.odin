@@ -34,6 +34,11 @@ create_arena :: proc(size: int, alloctor := context.allocator) -> ^Arena
   return result
 }
 
+destroy_arena :: proc(arena: ^Arena)
+{
+  delete(arena.data[:arena.size], runtime.default_allocator())
+}
+
 arena_push :: proc
 {
   arena_push_bytes,
@@ -108,29 +113,9 @@ arena_clear :: proc(arena: ^Arena)
   arena.offset = 0
 }
 
-destroy_arena :: proc(arena: ^Arena)
-{
-  delete(arena.data[:arena.size], runtime.default_allocator())
-}
-
 arena_from_allocator :: #force_inline proc(allocator: runtime.Allocator) -> ^Arena
 {
   return cast(^Arena) allocator.data
-}
-
-align_ptr :: #force_inline proc(ptr: rawptr, align: int) -> (rawptr, int)
-{
-	result := cast(uintptr) ptr
-  offset: uintptr = 0
-
-	modulo := result & (uintptr(align) - 1)
-	if modulo != 0
-  {
-    offset = uintptr(align) - modulo
-		result += offset
-	}
-
-	return rawptr(result), int(offset)
 }
 
 arena_allocator_proc :: proc(allocator_data: rawptr, 
@@ -167,6 +152,21 @@ arena_allocator_proc :: proc(allocator_data: rawptr,
 }
 
 // @Misc /////////////////////////////////////////////////////////////////////////////////
+
+align_ptr :: #force_inline proc(ptr: rawptr, align: int) -> (rawptr, int)
+{
+	result := cast(uintptr) ptr
+  offset: uintptr = 0
+
+	modulo := result & (uintptr(align) - 1)
+	if modulo != 0
+  {
+    offset = uintptr(align) - modulo
+		result += offset
+	}
+
+	return rawptr(result), int(offset)
+}
 
 cpu_cycle_counter :: #force_inline proc() -> i64
 {

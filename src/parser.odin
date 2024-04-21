@@ -7,7 +7,7 @@ TOKEN_CAP :: 2000
 
 test_parser :: proc()
 {
-  arena: ^rt.Arena = rt.create_arena(rt.MIB * 8)
+  arena := rt.create_arena(rt.MIB * 8)
   
   tokens := tokens_from_json_at_path("res/test.json", arena)
   for i in 0..<tokens.count
@@ -167,11 +167,6 @@ tokens_from_json_at_path :: proc(path: string, arena: ^rt.Arena) -> TokenList
 }
 
 // @Parser ///////////////////////////////////////////////////////////////////////////////
-
-Parser :: struct
-{
-  
-}
 
 items_from_tokens :: proc(tokens: TokenList, arena: ^rt.Arena) -> ItemStore
 {
