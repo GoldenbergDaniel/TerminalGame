@@ -3,7 +3,7 @@ package rt
 import runtime "base:runtime"
 import intrinsics "base:intrinsics"
 
-// @Arena ////////////////////////////////////////////////////////////////////////////////
+// @Arena ///////////////////////////////////////////////////////////////////////////
 
 KIB :: 1 << 10
 MIB :: 1 << 20
@@ -23,8 +23,7 @@ create_arena :: proc(size: int, alloctor := context.allocator) -> ^Arena
   result: ^Arena = new(Arena, alloctor)
   result.data = make([^]byte, size, runtime.heap_allocator())
   result.size = size
-  result.allocator =
-  {
+  result.allocator = {
     data=result, 
     procedure=arena_allocator_proc,
   }
@@ -36,7 +35,7 @@ create_arena :: proc(size: int, alloctor := context.allocator) -> ^Arena
 
 destroy_arena :: proc(arena: ^Arena)
 {
-  delete(arena.data[:arena.size], runtime.default_allocator())
+  delete(arena.data[:arena.size], runtime.heap_allocator())
 }
 
 arena_push :: proc
@@ -151,12 +150,12 @@ arena_allocator_proc :: proc(allocator_data: rawptr,
 	return nil, nil
 }
 
-// @Misc /////////////////////////////////////////////////////////////////////////////////
+// @Misc ////////////////////////////////////////////////////////////////////////////
 
 align_ptr :: #force_inline proc(ptr: rawptr, align: int) -> (rawptr, int)
 {
 	result := cast(uintptr) ptr
-  offset: uintptr = 0
+  offset: uintptr
 
 	modulo := result & (uintptr(align) - 1)
 	if modulo != 0

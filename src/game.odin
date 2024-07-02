@@ -1,6 +1,6 @@
 package main
 
-// @GameState ////////////////////////////////////////////////////////////////////////////
+// @GameState ///////////////////////////////////////////////////////////////////////
 
 MAX_SCAVANGE_STEPS :: 10
 RANDOM_ENCOUNTER_CHANCE :: 4
@@ -8,34 +8,34 @@ COMBAT_FLEE_CHANCE :: 5
 
 Game :: struct
 {
-  running : bool,
-  started : bool,
-  day : int,
+  running: bool,
+  started: bool,
+  day: int,
  
-  player_name : string,
+  player_name: string,
   
-  perception : u8,
-  endurance : u8,
-  dexterity : u8,
-  luck : u8,
+  perception: u8,
+  endurance: u8,
+  dexterity: u8,
+  luck: u8,
 
-  faith : int,
-  max_health : int,
-  health : int,
-  food : int,
-  water : int,
+  faith: int,
+  max_health: int,
+  health: int,
+  food: int,
+  water: int,
 
-  items : [ItemType.COUNT]Item,
-  item_count : uint,
-  item_capacity : uint,
+  items: ItemArray,
+  item_count: uint,
+  item_capacity: uint,
 
-  activities : bit_set[Activity],
-  override_action : Action,
+  activities: bit_set[Activity],
+  override_action: Action,
   
-  current_scavange_step : int,
-  remaining_scavange_steps : int,
+  current_scavange_step: int,
+  remaining_scavange_steps: int,
 
-  entity_in_combat : EntityType,
+  entity_in_combat: EntityType,
 }
 
 Activity :: enum
@@ -61,7 +61,7 @@ Action :: enum
   PRINT_CHARACTER,
 }
 
-// @Main /////////////////////////////////////////////////////////////////////////////////
+// @Main ////////////////////////////////////////////////////////////////////////////
 
 main :: proc()
 {
@@ -78,7 +78,7 @@ main :: proc()
   context.temp_allocator = temp_arena.allocator
 
   test_parser()
-  if true do return
+  // if true do return
 
   commands := make(map[string]Action, 32, perm_arena.allocator)
   defer rt.arena_pop_map(perm_arena, commands)
@@ -101,12 +101,12 @@ main :: proc()
 
   action: Action
 
-  entities: [len(EntityType)]Entity
-  init_entities(entities[:])
+  entities: EntityArray 
+  init_entities(&entities)
 
   gm: Game
   gm.running = true
-  init_items(gm.items[:])
+  init_items(&gm.items)
 
   rng: rand.Rand
   seed := cast(u64) rt.cpu_cycle_counter()
@@ -117,7 +117,9 @@ main :: proc()
   set_bold(true)
   fmt.print("===== Unnamed Survival Game =====\n")
   set_bold(false)
-  fmt.print("Type 'new' to start a new game. Type 'continue' to continue last save.\n\n")
+  fmt.print("Type 'new' or 'continue' to start.\n\n")
+
+  if true do return
 
   for gm.running
   {
@@ -129,7 +131,7 @@ main :: proc()
       cmd_input_len, _ := os.read(os.stdin, cmd_input_buf[:])
       cmd_input_len -= 1
 
-      cmd_str: string = cast(string) cmd_input_buf[:cmd_input_len]
+      cmd_str := cast(string) cmd_input_buf[:cmd_input_len]
       cmd_end: int = str.index_byte(cmd_str, ' ')
       if cmd_end == -1
       {
@@ -276,7 +278,7 @@ main :: proc()
           if gm.faith >= 90
           {
             // good ending
-            fmt.print("The military has arrived, and you've been safely evacuated.\n")
+            fmt.print("The military has arrived. You've been safely evacuated.\n")
           }
           else if gm.faith >= 30
           {
@@ -347,7 +349,7 @@ main :: proc()
           roll := rand.int31(&rng) % RANDOM_ENCOUNTER_CHANCE
           if roll == 1
           {
-            generate_random_encounter(&gm, entities[:])
+            generate_random_encounter(&gm, &entities)
           }
         }
         else
@@ -386,7 +388,7 @@ main :: proc()
           roll := rand.int31(&rng) % (RANDOM_ENCOUNTER_CHANCE + 2)
           if roll == 1
           {
-            generate_random_encounter(&gm, entities[:])
+            generate_random_encounter(&gm, &entities)
           }
         }
       }
@@ -495,26 +497,26 @@ ask_for_attribute_until_valid :: proc(prompt: string, remaining: u8) -> u8
   return result
 }
 
-// @Item /////////////////////////////////////////////////////////////////////////////////
+// @Item ////////////////////////////////////////////////////////////////////////////
 
 Item :: struct
 {
-  type : ItemType,
-  name : string,
-  health : int,
-  food : int,
-  water : int,
-  damage : int,
-  rarity : u8,
+  type: ItemType,
+  name: string,
+  health: int,
+  food: int,
+  water: int,
+  damage: int,
+  rarity: u8,
   
-  count : int
+  count: int
 }
 
 ItemStore :: struct
 {
-  arena : ^rt.Arena,
-  items : []Item,
-  count : int,
+  arena: ^rt.Arena,
+  items: []Item,
+  count: int,
 }
 
 ItemType :: enum
@@ -538,49 +540,49 @@ ItemType :: enum
   WEAPON_M3,
   WEAPON_M16,
   WEAPON_MOSSBERG_500,
-
-  COUNT,
 }
 
-init_items :: proc(items: []Item)
+ItemArray :: [ItemType]Item
+
+init_items :: proc(items: ^ItemArray)
 {
-  items[ItemType.HEALTH_APPLE] = {
+  items[.HEALTH_APPLE] = {
     type = .HEALTH_APPLE,
   }
-  items[ItemType.HEALTH_SANDWICH] = {
+  items[.HEALTH_SANDWICH] = {
     type = .HEALTH_SANDWICH,
   }
-  items[ItemType.HEALTH_STEW] = {
+  items[.HEALTH_STEW] = {
     type = .HEALTH_STEW,
   }
-  items[ItemType.HEALTH_WATER] = {
+  items[.HEALTH_WATER] = {
     type = .HEALTH_WATER,
   }
-  items[ItemType.AMMO_BULLET] = {
+  items[.AMMO_BULLET] = {
     type = .AMMO_BULLET,
   }
-  items[ItemType.AMMO_SHELL] = {
+  items[.AMMO_SHELL] = {
     type = .AMMO_SHELL,
   }
-  items[ItemType.WEAPON_POCKET_KNIFE] = {
+  items[.WEAPON_POCKET_KNIFE] = {
     type = .WEAPON_POCKET_KNIFE,
   }
-  items[ItemType.WEAPON_BASEBALL_BAT] = {
+  items[.WEAPON_BASEBALL_BAT] = {
     type = .WEAPON_BASEBALL_BAT,
   }
-  items[ItemType.WEAPON_MACHETE] = {
+  items[.WEAPON_MACHETE] = {
     type = .WEAPON_MACHETE,
   }
-  items[ItemType.WEAPON_M1911] = {
+  items[.WEAPON_M1911] = {
     type = .WEAPON_M1911,
   }
-  items[ItemType.WEAPON_M1915] = {
+  items[.WEAPON_M1915] = {
     type = .WEAPON_M1915,
   }
-  items[ItemType.WEAPON_M3] = {
+  items[.WEAPON_M3] = {
     type = .WEAPON_M3,
   }
-  items[ItemType.WEAPON_M16] = {
+  items[.WEAPON_M16] = {
     type = .WEAPON_M16,
   }
 }
@@ -609,7 +611,8 @@ remove_item :: proc(gm: ^Game, type: ItemType, count: int)
 
 generate_random_location :: proc(gm: ^Game)
 {
-  @(static) locations: [2]string = {
+  @(static)
+  locations: [2]string = {
     0 = "Grocery Store",
     1 = "Police Station",
   }
@@ -641,27 +644,28 @@ generate_random_location :: proc(gm: ^Game)
 
 string_from_item_type :: proc(type: ItemType) -> string
 {
-  @(static) items: [ItemType.COUNT]string = {
-    ItemType.HEALTH_APPLE = "Apple",
-    ItemType.HEALTH_SANDWICH = "Sandwich",
-    ItemType.HEALTH_STEW = "Stew",
-    ItemType.HEALTH_WATER = "Water Bottle",
-    ItemType.AMMO_BULLET = "Bullets",
-    ItemType.AMMO_SHELL = "Shotgun Shells",
-    ItemType.WEAPON_POCKET_KNIFE = "Pocket Knife",
-    ItemType.WEAPON_BASEBALL_BAT = "Baseball Bat",
-    ItemType.WEAPON_MACHETE = "Machete",
-    ItemType.WEAPON_M1911 = "M1911 Pistol",
-    ItemType.WEAPON_M1915 = "M1915 Pistol",
-    ItemType.WEAPON_M3 = "M3 SMG",
-    ItemType.WEAPON_M16 = "M16A1 Rifle",
-    ItemType.WEAPON_MOSSBERG_500 = "Mossberg 500 Shotgun",
+  @(static)
+  items: [ItemType]string = {
+    .HEALTH_APPLE = "Apple",
+    .HEALTH_SANDWICH = "Sandwich",
+    .HEALTH_STEW = "Stew",
+    .HEALTH_WATER = "Water Bottle",
+    .AMMO_BULLET = "Bullets",
+    .AMMO_SHELL = "Shotgun Shells",
+    .WEAPON_POCKET_KNIFE = "Pocket Knife",
+    .WEAPON_BASEBALL_BAT = "Baseball Bat",
+    .WEAPON_MACHETE = "Machete",
+    .WEAPON_M1911 = "M1911 Pistol",
+    .WEAPON_M1915 = "M1915 Pistol",
+    .WEAPON_M3 = "M3 SMG",
+    .WEAPON_M16 = "M16A1 Rifle",
+    .WEAPON_MOSSBERG_500 = "Mossberg 500 Shotgun",
   }
 
   return items[type]
 }
 
-// @Entity ///////////////////////////////////////////////////////////////////////////////
+// @Entity //////////////////////////////////////////////////////////////////////////
 
 Entity :: struct
 {
@@ -679,32 +683,38 @@ EntityType :: enum
   DEMON,
 }
 
-init_entities :: proc(entities: []Entity)
+// EntityArray :: [EntityType]Entity
+
+init_entities :: proc(entities: ^EntityArray)
 {
-  entities[EntityType.POSSESSED_SQUIRREL] = {
+  entities[.POSSESSED_SQUIRREL] = {
     type = .POSSESSED_SQUIRREL,
     health = 10,
     damage = 3,
   }
-  entities[EntityType.POSSESSED_DOG] = {
+  entities[.POSSESSED_DOG] = {
     type = .POSSESSED_DOG,
     health = 10,
     damage = 5,
   }
-  entities[EntityType.CULTIST] = {
+  entities[.CULTIST] = {
     type = .CULTIST,
     health = 20,
     damage = 7,
   }
-  entities[EntityType.DEMON] = {
+  entities[.DEMON] = {
     type = .DEMON,
     health = 50,
     damage = 10,
   }
 }
 
-generate_random_encounter :: proc(gm: ^Game, entities: []Entity)
+EntityArray :: [EntityType]Entity
+
+generate_random_encounter :: proc(gm: ^Game, entities: ^EntityArray) -> (ok: bool)
 {
+  if gm == nil do return false
+
   for true
   {
     roll: EntityType = cast(EntityType) (rand.int31() % i32(len(EntityType)))
@@ -719,7 +729,7 @@ generate_random_encounter :: proc(gm: ^Game, entities: []Entity)
 
     if entities[roll].passive
     {
-      // entity is passive. trade maybe?
+      return true
     }
     else
     {
@@ -731,21 +741,33 @@ generate_random_encounter :: proc(gm: ^Game, entities: []Entity)
 
     break
   }
+
+  return false
+}
+
+// import "core:"
+
+foo :: proc(gm: ^Game, entities: ^EntityArray) -> bool
+{
+  generate_random_encounter(gm, entities) or_return
+
+  return true
 }
 
 string_from_entity_type :: proc(type: EntityType) -> string
 {
-  @(static) items: [len(EntityType)]string = {
-    EntityType.POSSESSED_SQUIRREL = "Possessed Squirrel",
-    EntityType.POSSESSED_DOG = "Possessed Dog",
-    EntityType.CULTIST = "Cultist",
-    EntityType.DEMON = "Demon",
+  @(static)
+  items: [EntityType]string = {
+    .POSSESSED_SQUIRREL = "Possessed Squirrel",
+    .POSSESSED_DOG = "Possessed Dog",
+    .CULTIST = "Cultist",
+    .DEMON = "Demon",
   }
 
   return items[type]
 }
 
-// @Terminal /////////////////////////////////////////////////////////////////////////////
+// @Terminal ////////////////////////////////////////////////////////////////////////
 
 Color :: enum
 {
@@ -760,23 +782,15 @@ Color :: enum
 
 set_color :: proc(color: Color)
 {
-  PI : f32 : 3.14159
   switch color
   {
-    case .BLACK:
-      fmt.print("\u001b[38;5;16m")
-    case .BLUE:
-      fmt.print("\u001b[38;5;4m")
-    case .GRAY:
-      fmt.print("\u001b[38;5;7m")
-    case .GREEN:
-      fmt.print("\u001b[38;5;2m")
-    case .RED:
-      fmt.print("\u001b[38;5;1m")
-    case .WHITE:
-      fmt.print("\u001b[38;5;15m")
-    case .YELLOW:
-      fmt.print("\u001b[38;5;3m")
+    case .BLACK:  fmt.print("\u001b[38;5;16m")
+    case .BLUE:   fmt.print("\u001b[38;5;4m")
+    case .GRAY:   fmt.print("\u001b[38;5;7m")
+    case .GREEN:  fmt.print("\u001b[38;5;2m")
+    case .RED:    fmt.print("\u001b[38;5;1m")
+    case .WHITE:  fmt.print("\u001b[38;5;15m")
+    case .YELLOW: fmt.print("\u001b[38;5;3m")
   }
 }
 
@@ -793,7 +807,7 @@ set_bold :: proc(bold: bool)
   }
 }
 
-// @Imports //////////////////////////////////////////////////////////////////////////////
+// @Imports /////////////////////////////////////////////////////////////////////////
 
 import fmt "core:fmt"
 import os "core:os"

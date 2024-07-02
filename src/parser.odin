@@ -20,10 +20,12 @@ test_parser :: proc()
     }
   }
 
-  items: ItemStore = items_from_tokens(tokens, arena)
+  fmt.print("\n")
+
+  // items: ItemStore = items_from_tokens(tokens, arena)
 }
 
-// @Token //////////////////////////////////////////////////////////////////////////////// 
+// @Token ////////////////////////////////////////////////////////////////////////////////
 
 Token :: struct
 {
@@ -218,7 +220,6 @@ items_from_tokens :: proc(tokens: TokenList, arena: ^rt.Arena) -> ItemStore
       case .BRACE_OPEN:
       {
         // start of item
-
       }
       case .BRACE_CLOSED:
       {
